@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Hero from './components/home/Hero';
@@ -17,6 +18,7 @@ import SportsPage from './pages/SportsPage';
 import BookingsPage from './pages/BookingsPage';
 import ConfirmBookingPage from './pages/ConfirmBookingPage';
 import ChatBot from './components/chat/ChatBot';
+import AuthModal from './components/auth/AuthModal';
 import config from './config';
 
 // Create a wrapper component for the Home page to access router hooks
@@ -156,8 +158,8 @@ function HomePage(props) {
 }
 
 function App() {
-  const [venues, setVenues] = useState([]);
-  const [sports, setSports] = useState([]);
+  const [venues, setVenues] = useState(config.defaultVenues);
+  const [sports, setSports] = useState(config.defaultSports);
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -176,20 +178,32 @@ function App() {
     const fetchVenues = async () => {
       try {
         const response = await fetch(`${API_URL}/venues`);
-        const data = await response.json();
-        setVenues(data);
+        if (response.ok) {
+          const data = await response.json();
+          setVenues(data);
+        } else {
+          // Use default venues if API fails
+          console.warn('Failed to fetch venues, using defaults');
+        }
       } catch (error) {
         console.error('Error fetching venues:', error);
+        // Keep using default venues from config
       }
     };
 
     const fetchSports = async () => {
       try {
         const response = await fetch(`${API_URL}/sports`);
-        const data = await response.json();
-        setSports(data);
+        if (response.ok) {
+          const data = await response.json();
+          setSports(data);
+        } else {
+          // Use default sports if API fails
+          console.warn('Failed to fetch sports, using defaults');
+        }
       } catch (error) {
         console.error('Error fetching sports:', error);
+        // Keep using default sports from config
       }
     };
 
@@ -257,69 +271,8 @@ function App() {
     };
   }, [selectedVenue, selectedDate, API_URL]);
 
-  // Sport icons with gradients and images - enhanced with images for each sport
-  const sportIcons = {
-    Cricket: {
-      emoji: "🏏",
-      gradient: "from-emerald-400 to-green-600",
-      shadow: "shadow-emerald-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/3628912/pexels-photo-3628912.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    },
-    Football: {
-      emoji: "⚽",
-      gradient: "from-emerald-400 to-teal-600",
-      shadow: "shadow-emerald-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/3041176/pexels-photo-3041176.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    },
-    Basketball: {
-      emoji: "🏀",
-      gradient: "from-teal-400 to-emerald-600",
-      shadow: "shadow-teal-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1546519638-68e109acd27d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1505666287802-931dc83a5dc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/358042/pexels-photo-358042.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    },
-    Tennis: {
-      emoji: "🎾",
-      gradient: "from-green-400 to-emerald-600",
-      shadow: "shadow-green-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/5739101/pexels-photo-5739101.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    },
-    Badminton: {
-      emoji: "🏸",
-      gradient: "from-emerald-400 to-green-600",
-      shadow: "shadow-emerald-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1626224583764-f87db24ac1f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/3660204/pexels-photo-3660204.jpeg?auto=compress&cs=tinysrgb&w=500&q=80",
-        "https://images.pexels.com/photos/6203574/pexels-photo-6203574.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    },
-    Pickleball: {
-      emoji: "🎯",
-      gradient: "from-teal-400 to-emerald-600",
-      shadow: "shadow-teal-500/50",
-      images: [
-        "https://images.unsplash.com/photo-1631495634750-0c473e620673?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-        "https://images.pexels.com/photos/7937415/pexels-photo-7937415.jpeg?auto=compress&cs=tinysrgb&w=500&q=80",
-        "https://images.pexels.com/photos/3660199/pexels-photo-3660199.jpeg?auto=compress&cs=tinysrgb&w=500&q=80"
-      ]
-    }
-  };
+  // Use sport icons from config
+  const sportIcons = config.sportIcons;
 
   // Handle booking completion
   const [latestBooking, setLatestBooking] = useState(null);
@@ -402,41 +355,44 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/venues" element={<VenuesPage />} />
-        <Route path="/sports" element={<SportsPage />} />
-        <Route path="/bookings" element={<BookingsPage />} />
-        <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
-        <Route path="/" element={
-          <HomePage 
-            venues={venues}
-            sports={sports}
-            selectedVenue={selectedVenue}
-            setSelectedVenue={setSelectedVenue}
-            selectedSport={selectedSport}
-            setSelectedSport={setSelectedSport}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            availableSlots={availableSlots}
-            selectedSlot={selectedSlot}
-            setSelectedSlot={setSelectedSlot}
-            userName={userName}
-            setUserName={setUserName}
-            loading={loading}
-            latestBooking={latestBooking}
-            currentBookings={currentBookings}
-            sportIcons={sportIcons}
-            handleBookSlot={handleBookSlot}
-            handleVenueSelect={handleVenueSelect}
-            getNextWeekDates={getNextWeekDates}
-          />
-        } />
-      </Routes>
-      <ChatBot />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/venues" element={<VenuesPage />} />
+          <Route path="/sports" element={<SportsPage />} />
+          <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
+          <Route path="/" element={
+            <HomePage 
+              venues={venues}
+              sports={sports}
+              selectedVenue={selectedVenue}
+              setSelectedVenue={setSelectedVenue}
+              selectedSport={selectedSport}
+              setSelectedSport={setSelectedSport}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              availableSlots={availableSlots}
+              selectedSlot={selectedSlot}
+              setSelectedSlot={setSelectedSlot}
+              userName={userName}
+              setUserName={setUserName}
+              loading={loading}
+              latestBooking={latestBooking}
+              currentBookings={currentBookings}
+              sportIcons={sportIcons}
+              handleBookSlot={handleBookSlot}
+              handleVenueSelect={handleVenueSelect}
+              getNextWeekDates={getNextWeekDates}
+            />
+          } />
+        </Routes>
+        <ChatBot />
+        <AuthModal />
+      </Router>
+    </AuthProvider>
   );
 }
 

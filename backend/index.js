@@ -1,13 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 const app = express();
 const aiRoutes = require('./routes/aiRoutes');
+const authRoutes = require('./routes/authRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const { protect } = require('./middleware/authMiddleware');
 
 // Environment variables
 const PORT = process.env.PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sportomic';
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Middleware
 app.use(cors({
@@ -16,12 +27,15 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Log the environment
 console.log(`Server running in ${NODE_ENV} mode`);
 
 // AI Routes
 app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // In-memory data store - updated to match Sportomic's real venues
 const venues = [
@@ -208,7 +222,8 @@ app.get('/api/slots', (req, res) => {
   res.json(availableSlots[venueId][date]);
 });
 
-app.post('/api/book', (req, res) => {
+// Restore the protect middleware for the booking endpoint
+app.post('/api/book', protect, (req, res) => {
   updateActivity(); // Track user activity
   const { venueId, date, time, userName, sport } = req.body;
   

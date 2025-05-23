@@ -3,13 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { useAuth } from '../context/AuthContext';
 
 // Get API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL;
 
 const ConfirmBookingPage = () => {
+  console.log("⭐ ConfirmBookingPage is rendering");
   const location = useLocation();
+  console.log("📍 Location state:", location.state);
+  
   const navigate = useNavigate();
+  const { user, createGuestSession, isAuthenticated, token, openLoginModal } = useAuth();
   const [bookingData, setBookingData] = useState(null);
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,13 +28,16 @@ const ConfirmBookingPage = () => {
   // Extract booking data from URL state
   useEffect(() => {
     try {
+      console.log("🔍 In useEffect, location state:", location.state);
       if (location.state?.bookingData) {
         const data = location.state.bookingData;
         setBookingData(data);
         
-        // Pre-fill username if provided
+        // Pre-fill username if provided or use authenticated user's name
         if (data.userName) {
           setUserName(data.userName);
+        } else if (user && user.name) {
+          setUserName(user.name);
         }
         
         // If there's time in the booking data, create a slot object
@@ -47,10 +55,19 @@ const ConfirmBookingPage = () => {
         navigate('/', { replace: true });
       }
     } catch (error) {
-      console.error("Error in useEffect:", error);
+      console.error("❌ Error in useEffect:", error);
       navigate('/', { replace: true });
     }
-  }, [location, navigate]);
+  }, [location, navigate, user]);
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      // If not authenticated, open login modal and redirect
+      openLoginModal('login');
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate, openLoginModal]);
 
   // Helper function to determine the period based on time
   const getPeriodFromTime = (timeString) => {
@@ -124,10 +141,17 @@ const ConfirmBookingPage = () => {
     setError('');
     
     try {
+      // If no user yet, create a guest session with the provided name
+      if (!user) {
+        createGuestSession(userName);
+      }
+
+      // Include authorization header with token
       const response = await fetch(`${API_URL}/book`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           venueId: bookingData.venueId,

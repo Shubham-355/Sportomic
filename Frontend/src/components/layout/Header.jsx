@@ -1,194 +1,339 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const location = useLocation();
-
-  // Check if current page is the home page (for styling purposes)
-  const isHomePage = location.pathname === '/';
+  const { isAuthenticated, user, logout, openLoginModal } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
-    // Initial check to set proper header state when navigating directly to a page
-    setIsScrolled(window.scrollY > 10);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when navigating to a new page
   useEffect(() => {
+    // Close mobile menu on route change
     setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [location]);
+
+  const handleLogout = () => {
+    logout();
+    setIsProfileMenuOpen(false);
+  };
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || !isHomePage
-          ? 'bg-white/90 backdrop-blur-md shadow-sm py-2 border-b border-gray-100' 
-          : 'bg-transparent py-4'
+    <header
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white shadow-md py-3' 
+          : 'bg-white/80 backdrop-blur-sm py-5'
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            {/* Inline SVG logo */}
-            <div className={`h-10 w-10 ${isScrolled || !isHomePage ? 'bg-[#ddffe7]' : 'bg-white'} rounded-full flex items-center justify-center`}>
-              <svg 
-                className={`h-6 w-6 ${isScrolled || !isHomePage ? 'text-green-800' : 'text-green-700'}`} 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
-                <path d="M10 17L15 12L10 7V17Z" fill="currentColor"/>
-              </svg>
-            </div>
-            <span className={`font-bold text-2xl ${isScrolled || !isHomePage ? 'text-gray-800' : 'text-white'}`}>
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <span className="text-3xl mr-2">🏏</span>
+            <span className="font-bold text-xl text-gray-800">
               Sportomic
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link 
-              to="/" 
-              className={`font-medium transition ${
-                isScrolled || !isHomePage
-                  ? (location.pathname === "/" ? "text-green-700" : "text-gray-700 hover:text-green-700") 
-                  : (location.pathname === "/" ? "text-white opacity-100" : "text-white/90 hover:text-white")
+          <nav className="hidden md:flex items-center space-x-1">
+            <Link
+              to="/"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/'
+                  ? 'bg-[#ddffe7] text-green-800'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               Home
             </Link>
-            <Link 
-              to="/venues" 
-              className={`font-medium transition ${
-                isScrolled || !isHomePage
-                  ? (location.pathname === "/venues" ? "text-green-700" : "text-gray-700 hover:text-green-700") 
-                  : (location.pathname === "/venues" ? "text-white opacity-100" : "text-white/90 hover:text-white")
+            <Link
+              to="/venues"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/venues'
+                  ? 'bg-[#ddffe7] text-green-800'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               Venues
             </Link>
-            <Link 
-              to="/sports" 
-              className={`font-medium transition ${
-                isScrolled || !isHomePage
-                  ? (location.pathname === "/sports" ? "text-green-700" : "text-gray-700 hover:text-green-700") 
-                  : (location.pathname === "/sports" ? "text-white opacity-100" : "text-white/90 hover:text-white")
+            <Link
+              to="/sports"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/sports'
+                  ? 'bg-[#ddffe7] text-green-800'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               Sports
             </Link>
-            <Link 
-              to="/about" 
-              className={`font-medium transition ${
-                isScrolled || !isHomePage
-                  ? (location.pathname === "/about" ? "text-green-700" : "text-gray-700 hover:text-green-700") 
-                  : (location.pathname === "/about" ? "text-white opacity-100" : "text-white/90 hover:text-white")
+            {isAuthenticated && (
+              <Link
+                to="/bookings"
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  location.pathname === '/bookings'
+                    ? 'bg-[#ddffe7] text-green-800'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                My Bookings
+              </Link>
+            )}
+            <Link
+              to="/about"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/about'
+                  ? 'bg-[#ddffe7] text-green-800'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               About
             </Link>
-            <Link 
-              to="/contact" 
-              className={`font-medium transition ${
-                isScrolled || !isHomePage
-                  ? (location.pathname === "/contact" ? "text-green-700" : "text-gray-700 hover:text-green-700") 
-                  : (location.pathname === "/contact" ? "text-white opacity-100" : "text-white/90 hover:text-white")
+            <Link
+              to="/contact"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/contact'
+                  ? 'bg-[#ddffe7] text-green-800'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               Contact
-            </Link>
-            <Link 
-              to="/bookings" 
-              className="bg-[#ddffe7] hover:bg-[#c3f8d4] text-green-800 px-4 py-2 rounded-lg transition shadow-md hover:shadow-lg"
-            >
-              My Bookings
             </Link>
           </nav>
 
+          {/* Auth Buttons or Profile */}
+          <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="flex items-center space-x-2 bg-[#ddffe7]/30 hover:bg-[#ddffe7]/50 py-2 px-3 rounded-lg transition-colors"
+                >
+                  <div className="w-8 h-8 bg-[#ddffe7] rounded-full flex items-center justify-center">
+                    <span className="text-green-800 font-semibold text-sm">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="font-medium text-gray-800">{user.name}</span>
+                  <svg
+                    className={`w-4 h-4 text-gray-600 transition-transform ${
+                      isProfileMenuOpen ? 'transform rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10"
+                  >
+                    <Link
+                      to="/bookings"
+                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      <span>My Bookings</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-red-600"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => openLoginModal('login')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => openLoginModal('register')}
+                  className="px-4 py-2 bg-[#ddffe7] text-green-800 rounded-lg hover:bg-[#c3f8d4] transition-colors"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+          </div>
+
           {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 rounded-lg focus:outline-none"
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-gray-700 focus:outline-none"
+            aria-label="Toggle menu"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className={`h-6 w-6 ${isScrolled || !isHomePage ? 'text-gray-700' : 'text-white'}`} 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {isMobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            )}
           </button>
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100 animate-fadeIn">
-            <Link 
-              to="/" 
-              className={`block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${
-                location.pathname === "/" ? "text-green-700 font-medium" : "text-gray-700"
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/venues" 
-              className={`block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${
-                location.pathname === "/venues" ? "text-green-700 font-medium" : "text-gray-700"
-              }`}
-            >
-              Venues
-            </Link>
-            <Link 
-              to="/sports" 
-              className={`block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${
-                location.pathname === "/sports" ? "text-green-700 font-medium" : "text-gray-700"
-              }`}
-            >
-              Sports
-            </Link>
-            <Link 
-              to="/about" 
-              className={`block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${
-                location.pathname === "/about" ? "text-green-700 font-medium" : "text-gray-700"
-              }`}
-            >
-              About
-            </Link>
-            <Link 
-              to="/contact" 
-              className={`block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${
-                location.pathname === "/contact" ? "text-green-700 font-medium" : "text-gray-700"
-              }`}
-            >
-              Contact
-            </Link>
-            <Link 
-              to="/bookings" 
-              className="block px-4 py-3 text-green-700 font-medium hover:bg-[#ddffe7]/20"
-            >
-              My Bookings
-            </Link>
-          </div>
-        )}
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden bg-white shadow-lg"
+        >
+          <div className="container mx-auto px-4 py-4">
+            <nav className="flex flex-col space-y-2">
+              <Link
+                to="/"
+                className={`px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === '/' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                }`}
+              >
+                Home
+              </Link>
+              <Link
+                to="/venues"
+                className={`px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === '/venues' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                }`}
+              >
+                Venues
+              </Link>
+              <Link
+                to="/sports"
+                className={`px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === '/sports' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                }`}
+              >
+                Sports
+              </Link>
+              {isAuthenticated && (
+                <Link
+                  to="/bookings"
+                  className={`px-4 py-3 rounded-lg transition-colors ${
+                    location.pathname === '/bookings' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                  }`}
+                >
+                  My Bookings
+                </Link>
+              )}
+              <Link
+                to="/about"
+                className={`px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === '/about' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                }`}
+              >
+                About
+              </Link>
+              <Link
+                to="/contact"
+                className={`px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === '/contact' ? 'bg-[#ddffe7] text-green-800' : 'text-gray-700'
+                }`}
+              >
+                Contact
+              </Link>
+
+              {/* Mobile Auth Buttons */}
+              <div className="pt-2 border-t border-gray-100 mt-2">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-2 px-4 py-3">
+                      <div className="w-8 h-8 bg-[#ddffe7] rounded-full flex items-center justify-center">
+                        <span className="text-green-800 font-semibold text-sm">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="font-medium text-gray-800">{user.name}</span>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-red-600 hover:bg-gray-50 rounded-lg transition-colors mt-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex flex-col space-y-2">
+                    <button
+                      onClick={() => {
+                        openLoginModal('login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => {
+                        openLoginModal('register');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-3 bg-[#ddffe7] text-green-800 rounded-lg"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </div>
+        </motion.div>
+      )}
     </header>
   );
 };
