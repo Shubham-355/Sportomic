@@ -1,0 +1,53 @@
+# Build settings
+[build]
+  # Directory to publish (output from the build command)
+  publish = "dist"
+  # Build command
+  command = "npm run build"
+
+# Redirects and rewrites
+[[redirects]]
+  # Redirect all routes to index.html for SPA routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for cache control and security
+[[headers]]
+  # Define headers for all files in the publish directory
+  for = "/*"
+    [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https://images.unsplash.com https://images.pexels.com https://randomuser.me; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://sportomic-api.example.com http://localhost:5000;"
+
+# Asset optimization
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.images]
+  compress = true
+
+# Environment variables
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "production"
+
+[context.branch-deploy.environment]
+  NODE_ENV = "production"
+
+# Development server settings
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 5173
+  framework = "vite"

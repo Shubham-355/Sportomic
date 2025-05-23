@@ -1,0 +1,15 @@
+{
+  "name": "sportomic-slot-booking",
+  "version": "1.0.0",
+  "description": "Slot booking application for Sportomic",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && node index.js",
+    "start:frontend": "cd Frontend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../Frontend && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
