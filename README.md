@@ -60,6 +60,3 @@ To use the chatbot:
 2. Type your question or request
 3. Receive instant AI-generated assistance
 
-## License
-
-[MIT](LICENSE)
