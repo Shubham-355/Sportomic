@@ -32,13 +32,14 @@ Sportomic is a modern web application for booking sports venues. It allows users
      VITE_API_URL=http://localhost:5000/api
      VITE_APP_NAME=Sportomic
      VITE_APP_VERSION=1.0.0
-     VITE_GEMINI_API_KEY=YOUR_API_KEY
      ```
    - Create a `.env` file in the `backend` directory with:
      ```
      PORT=5000
      CORS_ORIGIN=http://localhost:5173
      NODE_ENV=development
+     MONGO_URI=your_database
+     VITE_GEMINI_API_KEY=YOUR_API_KEY
      ```
 4. Start the development server:
    ```
