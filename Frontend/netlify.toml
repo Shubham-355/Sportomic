@@ -2,8 +2,12 @@
 [build]
   # Directory to publish (output from the build command)
   publish = "dist"
-  # Build command
-  command = "npm run build"
+  # Build command with dependency installation
+  command = "npm ci && npm run build"
+
+# Node.js version
+[build.environment]
+  NODE_VERSION = "18.16.0"
 
 # Redirects and rewrites
 [[redirects]]
